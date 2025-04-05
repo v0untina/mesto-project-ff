@@ -1,42 +1,76 @@
 import "./../pages/index.css";
-import { createCards, addNewCard, deleteCard, likeCard } from "./card";
-import { openPopup, fillProfileForm, handleProfileFormSubmit, handleAddFormSubmit } from "./modal";
+import { addNewCard } from "./card";
+import { initialCards } from "./cards";
+import { openPopup, closePopup, setupPopupCloseListeners } from "./modal";
 
+// Элементы DOM
 export const cardTemplate = document.querySelector("#card-template").content;
-export const placesList = document.querySelector(".places__list");
+const profileTitle = document.querySelector(".profile__title");
+const profileDescription = document.querySelector(".profile__description");
+const profileAddButton = document.querySelector(".profile__add-button");
+const profileEditButton = document.querySelector(".profile__edit-button");
+const editPopup = document.querySelector(".popup_type_edit");
+const newCardPopup = document.querySelector(".popup_type_new-card");
+const imageContentPopup = document.querySelector(".popup_type_image");
+const editForm = document.forms["edit-profile"];
+const nameInput = editForm.querySelector(".popup__input_type_name");
+const jobInput = editForm.querySelector(".popup__input_type_description");
+const addForm = document.forms["new-place"];
+const textInput = addForm.querySelector(".popup__input_type_card-name");
+const urlInput = addForm.querySelector(".popup__input_type_url");
 
-export const profileTitle = document.querySelector(".profile__title");
-export const profileDescription = document.querySelector(".profile__description");
+// Функции работы с карточками
+export function openCardPopup(text, src) {
+  const popupImageElement = imageContentPopup.querySelector(".popup__image");
+  const popupCaptionElement = imageContentPopup.querySelector(".popup__caption");
+  popupImageElement.src = src;
+  popupImageElement.alt = text;
+  popupCaptionElement.textContent = text;
+  openPopup(imageContentPopup);
+}
 
-export const profileAddButton = document.querySelector(".profile__add-button");
-export const profileEditButton = document.querySelector(".profile__edit-button");
+function createCards() {
+  initialCards.forEach(element => {
+    addNewCard(element.name, element.link);
+  });
+}
 
-export const editPopup = document.querySelector(".popup_type_edit");
-export const newCardPopup = document.querySelector(".popup_type_new-card");
-export const imageContentPopup = document.querySelector(".popup_type_image");
+// Функции работы с профилем
+function fillProfileForm(name, job) {
+  nameInput.value = name;
+  jobInput.value = job;
+}
 
+function handleProfileFormSubmit(evt) {
+  evt.preventDefault();
+  profileTitle.textContent = nameInput.value;
+  profileDescription.textContent = jobInput.value;
+  closePopup(editPopup);
+}
 
-export const editForm = document.forms["edit-profile"];
-export const nameInput = editForm.querySelector(".popup__input_type_name");
-export const jobInput = editForm.querySelector(".popup__input_type_description");
+function handleAddFormSubmit(evt) {
+  evt.preventDefault();
+  addNewCard(textInput.value, urlInput.value, true);
+  closePopup(newCardPopup);
+  evt.target.reset();
+}
 
-export const addForm = document.forms["new-place"];
-export const textInput = addForm.querySelector(".popup__input_type_card-name");
-export const urlInput = addForm.querySelector(".popup__input_type_url");
+// Инициализация
+  setupPopupCloseListeners();
+  createCards();
 
-export const imgSrc = imageContentPopup.querySelector(".popup__image");
-export const caption = imageContentPopup.querySelector(".popup__caption");
+  // Обработчики событий
+  profileAddButton.addEventListener("click", () => {
+    addForm.reset();
+    openPopup(newCardPopup);
+  });
 
-createCards();
+  profileEditButton.addEventListener("click", () => {
+    fillProfileForm(profileTitle.textContent, profileDescription.textContent);
+    openPopup(editPopup);
+  });
 
-// Обработчики
-profileAddButton.addEventListener("click", () => openPopup(newCardPopup));
-profileEditButton.addEventListener("click", () => {
-  fillProfileForm(profileTitle.textContent, profileDescription.textContent);
-  openPopup(editPopup);
-});
+  editForm.addEventListener("submit", handleProfileFormSubmit);
+  addForm.addEventListener("submit", handleAddFormSubmit);
 
-// Обработчик отправки формы профиля
-editForm.addEventListener("submit", handleProfileFormSubmit);
-addForm.addEventListener("submit", handleAddFormSubmit);
 

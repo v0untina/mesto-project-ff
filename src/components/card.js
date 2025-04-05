@@ -1,44 +1,38 @@
 import { initialCards } from "./cards";
 import "./../pages/index.css";
-import { cardTemplate, placesList, imgSrc, caption,imageContentPopup} from "./index";
-import { openPopup } from "./modal";
+import { cardTemplate,openCardPopup} from "./index";
 
 
-export function addNewCard(text, src,bool) {
+export function addNewCard(text, src) {
     const card = cardTemplate.cloneNode(true).querySelector(".card");
     const cardTitle = card.querySelector(".card__title");
     const cardImage = card.querySelector(".card__image");
     const likeButton = card.querySelector(".card__like-button");
     const deleteButton = card.querySelector(".card__delete-button");
-    
+
     cardTitle.textContent = text;
     cardImage.src = src;
     cardImage.alt = text;
 
-    card.addEventListener("click", () => openCardPopup(text, src));
-    likeButton.addEventListener("click", likeCard);
-    deleteButton.addEventListener("click", () => deleteCard(card));
-    
-    if (bool){
-        placesList.prepend(card);
-    }
-    else{
-        placesList.append(card);
-    }
-}
-
-export function openCardPopup(text, src) {
-    imgSrc.src = src;
-    imgSrc.alt = text
-    caption.textContent = text
-
-    openPopup(imageContentPopup)
-}
-
-export function createCards() {
-    initialCards.forEach(element => {
-        addNewCard(element.name, element.link);
+    cardImage.addEventListener("click", () => openCardPopup(text, src));
+    likeButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        likeCard(e.target); 
     });
+    deleteButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteCard(card);
+    });
+    renderCard(card,true)
+}
+
+export function renderCard(card, prepend = false) {
+    const placesList = document.querySelector(".places__list");
+    if (prepend) {
+        placesList.prepend(card); 
+    } else {
+        placesList.append(card); 
+    }
 }
 
 export function deleteCard(cardElement) {
@@ -46,5 +40,5 @@ export function deleteCard(cardElement) {
 }
 
 export function likeCard(evt) {
-    evt.target.classList.toggle('card__like-button_is-active');
+    evt.classList.toggle('card__like-button_is-active');
 }
