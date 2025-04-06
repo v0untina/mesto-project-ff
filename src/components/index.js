@@ -1,9 +1,8 @@
 import "./../pages/index.css";
-import { addNewCard } from "./card";
+import { createCard } from "./card";
 import { initialCards } from "./cards";
 import { openPopup, closePopup, setupPopupCloseListeners } from "./modal";
 
-// Элементы DOM
 export const cardTemplate = document.querySelector("#card-template").content;
 const profileTitle = document.querySelector(".profile__title");
 const profileDescription = document.querySelector(".profile__description");
@@ -17,25 +16,33 @@ const nameInput = editForm.querySelector(".popup__input_type_name");
 const jobInput = editForm.querySelector(".popup__input_type_description");
 const addForm = document.forms["new-place"];
 const textInput = addForm.querySelector(".popup__input_type_card-name");
-const urlInput = addForm.querySelector(".popup__input_type_url");
+const placeCardUrlInput = addForm.querySelector(".popup__input_type_url");
+const popupImageElement = imageContentPopup.querySelector(".popup__image");
+const popupCaptionElement = imageContentPopup.querySelector(".popup__caption");
 
-// Функции работы с карточками
 export function openCardPopup(text, src) {
-  const popupImageElement = imageContentPopup.querySelector(".popup__image");
-  const popupCaptionElement = imageContentPopup.querySelector(".popup__caption");
   popupImageElement.src = src;
   popupImageElement.alt = text;
   popupCaptionElement.textContent = text;
   openPopup(imageContentPopup);
 }
 
-function createCards() {
-  initialCards.forEach(element => {
-    addNewCard(element.name, element.link);
+function renderCard(cardElement, prepend = false) {
+  const placesList = document.querySelector(".places__list");
+  if (prepend) {
+    placesList.prepend(cardElement);
+  } else {
+    placesList.append(cardElement);
+  }
+}
+
+function createInitialCards() {
+  initialCards.forEach(cardData => {
+    const cardElement = createCard(cardData.name, cardData.link, openCardPopup);
+    renderCard(cardElement);
   });
 }
 
-// Функции работы с профилем
 function fillProfileForm(name, job) {
   nameInput.value = name;
   jobInput.value = job;
@@ -50,27 +57,24 @@ function handleProfileFormSubmit(evt) {
 
 function handleAddFormSubmit(evt) {
   evt.preventDefault();
-  addNewCard(textInput.value, urlInput.value, true);
+  const cardElement = createCard(textInput.value, placeCardUrlInput.value, openCardPopup);
+  renderCard(cardElement, true);
   closePopup(newCardPopup);
   evt.target.reset();
 }
 
-// Инициализация
-  setupPopupCloseListeners();
-  createCards();
+setupPopupCloseListeners();
+createInitialCards();
 
-  // Обработчики событий
-  profileAddButton.addEventListener("click", () => {
-    addForm.reset();
-    openPopup(newCardPopup);
-  });
+profileAddButton.addEventListener("click", () => {
+  addForm.reset();
+  openPopup(newCardPopup);
+});
 
-  profileEditButton.addEventListener("click", () => {
-    fillProfileForm(profileTitle.textContent, profileDescription.textContent);
-    openPopup(editPopup);
-  });
+profileEditButton.addEventListener("click", () => {
+  fillProfileForm(profileTitle.textContent, profileDescription.textContent);
+  openPopup(editPopup);
+});
 
-  editForm.addEventListener("submit", handleProfileFormSubmit);
-  addForm.addEventListener("submit", handleAddFormSubmit);
-
-
+editForm.addEventListener("submit", handleProfileFormSubmit);
+addForm.addEventListener("submit", handleAddFormSubmit);
