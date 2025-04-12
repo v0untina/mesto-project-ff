@@ -1,0 +1,8 @@
+.card__like-count {
+  display: flex;
+  font-size: 13px;
+  line-height: 15.73px;
+  color: rgba(0, 0, 0, 1);
+  font-weight: 400;
+  text-align: center;
+}
