@@ -37,7 +37,7 @@ const nameInputAvatar = editAvatarForm.querySelector(
 const avatarContainer = document.querySelector(".profile__avatar-container");
 const imagePopup = document.querySelector(".popup_type_image");
 const popupImage = imagePopup.querySelector(".popup__image");
-const popupCaption = imagePopup.querySelector(".popup__caption");
+const popupImageCaption = imagePopup.querySelector(".popup__caption");
 
 const validationConfig = {
   formSelector: ".popup__form",
@@ -49,13 +49,16 @@ const validationConfig = {
 };
 
 function handleImageClick(cardImage) {
-  // Установка изображения в попап
   popupImage.src = cardImage.src;
   popupImage.alt = cardImage.alt;
-  popupCaption.textContent = cardImage.alt;
-
-  // Открытие попапа с изображением
+  popupImageCaption.textContent = cardImage.alt;
   openModal(imagePopup);
+}
+
+// Функция для изменения состояния кнопки отправки формы
+function setSubmitButtonState(button, isLoading, defaultText = "Сохранить", loadingText = "Сохранение...") {
+  button.textContent = isLoading ? loadingText : defaultText;
+  button.disabled = isLoading;
 }
 
 // Обработчик для формы редактирования аватара
@@ -69,25 +72,25 @@ export function handleAvatarFormSubmit(
 
   const avatarLink = avatarInput.value;
   const saveButton = evt.target.querySelector(".popup__button");
-  const originalButtonText = saveButton.textContent;
 
-  // изменение текста кнопки на "Сохранение..."
-  saveButton.textContent = "Сохранение...";
-  saveButton.disabled = true; // Отключение кнопки
+  setSubmitButtonState(saveButton, true);
 
-  // запрос на обновление аватара
   updateAvatar(avatarLink)
     .then((updatedUserData) => {
       profileAvatar.style.backgroundImage = `url(${updatedUserData.avatar})`;
-
+      const avatarImg = document.querySelector('.profile__image');
+      if (avatarImg) {
+        avatarImg.style.backgroundImage = `url(${updatedUserData.avatar})`;
+      }
+      
+      evt.target.reset();
       closeModal(editPopupAvatar);
     })
     .catch((error) => {
       console.error("Ошибка обновления аватара:", error);
     })
     .finally(() => {
-      saveButton.textContent = originalButtonText;
-      saveButton.disabled = false;
+      setSubmitButtonState(saveButton, false);
     });
 }
 
@@ -105,27 +108,20 @@ export function handleFormSubmit(
   const updatedName = nameInput.value;
   const updatedAbout = aboutInput.value;
   const saveButton = evt.target.querySelector(".popup__button");
-  const originalButtonText = saveButton.textContent;
 
-  // Меняем текст кнопки на "Сохранение..."
-  saveButton.textContent = "Сохранение...";
-  saveButton.disabled = true; // Отключаем кнопку
+  setSubmitButtonState(saveButton, true);
 
   updateUserData(updatedName, updatedAbout)
     .then((updatedUserData) => {
-      // Обновляем данные на странице
       profileTitle.textContent = updatedUserData.name;
       profileDescription.textContent = updatedUserData.about;
-
-      // Закрытие попапа
       closeModal(editPopup);
     })
     .catch((error) => {
       console.error("Ошибка редактирования профиля:", error);
     })
     .finally(() => {
-      saveButton.textContent = originalButtonText;
-      saveButton.disabled = false;
+      setSubmitButtonState(saveButton, false);
     });
 }
 
@@ -154,11 +150,8 @@ export function handleAddCardFormSubmit(
   };
 
   const saveButton = addCardForm.querySelector(".popup__button");
-  const originalButtonText = saveButton.textContent;
 
-  // Меняем текст кнопки на "Сохранение..."
-  saveButton.textContent = "Сохранение...";
-  saveButton.disabled = true; // Отключаем кнопку
+  setSubmitButtonState(saveButton, true);
 
   addCard(newCardData)
     .then((newCard) => {
@@ -171,18 +164,14 @@ export function handleAddCardFormSubmit(
       );
 
       cardListContainer.prepend(cardElement);
-
       addCardForm.reset();
-
       closeModal(addCardPopup);
     })
     .catch((error) => {
       console.error("Ошибка добавления карточки:", error);
     })
     .finally(() => {
-      // Восстанавливаем текст кнопки и активируем её после завершения операции
-      saveButton.textContent = originalButtonText;
-      saveButton.disabled = false;
+      setSubmitButtonState(saveButton, false);
     });
 }
 
@@ -190,14 +179,11 @@ let currentUserId = null;
 
 Promise.all([getUserData(), getCards()])
   .then(([userData, cardsData]) => {
-    // ID текущего пользователя
     currentUserId = userData._id;
-    // Обновление профиля
     profileTitle.textContent = userData.name;
     profileDescription.textContent = userData.about;
     profileAvatar.style.backgroundImage = `url(${userData.avatar})`;
 
-    // Отображаение карточек
     cardsData.forEach((cardData) => {
       const cardElement = createCard(
         cardData,
@@ -213,20 +199,18 @@ Promise.all([getUserData(), getCards()])
     console.error("Ошибка загрузки данных:", error);
   });
 
-// Открытие попапа редактирования аватара
+// Остальной код остается без изменений
 avatarContainer.addEventListener("click", () => {
   editAvatarForm.reset();
   openModal(editPopupAvatar);
   clearValidation(editAvatarForm, validationConfig);
 });
 
-// Открытие попапа добавления новой карточки
 addButton.addEventListener("click", () => {
   openModal(addCardPopup);
   clearValidation(addCardForm, validationConfig);
 });
 
-// Открытие попапа редактирования профиля
 editButton.addEventListener("click", () => {
   nameInput.value = profileTitle.textContent;
   jobInput.value = profileDescription.textContent;
@@ -234,14 +218,12 @@ editButton.addEventListener("click", () => {
   clearValidation(editProfileForm, validationConfig);
 });
 
-// Закрытие попапов
 document.querySelectorAll(".popup__close").forEach((button) => {
   button.addEventListener("click", () => {
     closeModal(button.closest(".popup"));
   });
 });
 
-// Обработчик отправки формы обновления аватара
 editAvatarForm.addEventListener("submit", (evt) => {
   handleAvatarFormSubmit(
     evt,
@@ -252,7 +234,6 @@ editAvatarForm.addEventListener("submit", (evt) => {
   clearValidation(editAvatarForm, validationConfig);
 });
 
-// Обработчик отправки формы редактирования профиля
 editProfileForm.addEventListener("submit", (evt) => {
   handleFormSubmit(
     evt,
@@ -265,7 +246,6 @@ editProfileForm.addEventListener("submit", (evt) => {
   clearValidation(editProfileForm, validationConfig);
 });
 
-// Обработчик отправки формы добавления карточки
 addCardForm.addEventListener("submit", (evt) => {
   handleAddCardFormSubmit(
     evt,
@@ -281,5 +261,4 @@ addCardForm.addEventListener("submit", (evt) => {
   clearValidation(addCardForm, validationConfig);
 });
 
-// включение валидации вызовом enableValidation
 enableValidation(validationConfig);
